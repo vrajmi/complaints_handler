@@ -12,7 +12,7 @@ Route::get('/user', function (Request $request) {
 
 Route::middleware('auth:api');
 
-Route::get("/", [ComplaintApi::class, "index"]);
+Route::get("/complaint", [ComplaintApi::class, "index"]);
 
 Route::get('/complaint/{id}', [ComplaintApi::class, 'show']);
 

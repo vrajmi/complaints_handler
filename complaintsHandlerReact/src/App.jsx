@@ -1,35 +1,82 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
+import ComplaintCard from "./components/ComplaintCard";
 
 function App() {
-  function GetAllComplaint() {
-    const myHeaders = new Headers();
-    myHeaders.set("Content-Type", "text/html");
-    myHeaders.set("Access-Control-Allow-Origin", "https://localhost:5173/");
-    myHeaders.set("Access-Allow-Headers", "Origin");
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://127.0.0.1:8000/api/");
-
-    xhr.onload = function () {
-      if (xhr.status === 200) {
-        setData(JSON.parse(xhr.responseText));
-      } else {
-        console.log("Error");
-      }
-    };
-    xhr.send();
+  // Fetch complaints
+  function fetchAllData() {
+    setLoading(true);
+    fetch("http://127.0.0.1:8000/api/complaint")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        return response.json();
+      })
+      .then((response) => {
+        setData(response);
+        setError(null);
+      })
+      .catch((error) => {
+        console.error(error);
+        setError("Could not load complaints.");
+      })
+      .finally(() => setLoading(false));
   }
 
-  const [data, setData] = useState(null);
+  // Delete a complaint
+  function deleteComplaint(id) {
+    fetch(`http://127.0.0.1:8000/api/complaint/${id}`, {
+      method: "DELETE",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to delete complaint");
+        }
+        return response.json();
+      })
+      .then(() => {
+        setData((prev) => prev.filter((item) => item.id !== id));
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
 
   return (
-    <>
-      {GetAllComplaint()}
-      {data ? <div>{WriteJson(data)}</div> : <div></div>}
-    </>
+    <div className="container">
+      <header>
+        <h1>Panaszkezelő Rendszer</h1>
+        <button className="fetch-button" onClick={fetchAllData}>
+          Adatok Betöltése
+        </button>
+      </header>
+
+      {loading && <p className="loading">Betöltés...</p>}
+      {error && <p className="error">{error}</p>}
+
+      <div className="complaint-list">
+        {data.length > 0 ? (
+          data.map((complaint) => (
+            <ComplaintCard
+              key={complaint.id}
+              type={complaint.type}
+              name={complaint.name}
+              phone={complaint.phone}
+              email={complaint.email}
+              resolved={complaint.resolved}
+              onComplaintDelete={() => deleteComplaint(complaint.id)}
+            />
+          ))
+        ) : (
+          <p className="no-data">Nincs elérhető panasz.</p>
+        )}
+      </div>
+    </div>
   );
 }
 

@@ -69,9 +69,9 @@ class ComplaintApi extends Controller
     {
         $complaint = complaintModel::find($id);
         if (empty($complaint)) {
-            return response()->json(["message" => "Complaint deleted!"], 202);
-        } else {
             return response()->json(["message" => "Complaint not found!"], 404);
+        } else {
+            return response()->json(["message" => "Complaint deleted!"], 202);
         }
     }
 }
